@@ -5,11 +5,11 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-// ✅ Function: check if prime
+// ✅ Function: check if prime (optimized)
 function isPrime(num) {
   if (num < 2) return false;
 
-  for (let i = 2; i < num; i++) {
+  for (let i = 2; i <= Math.sqrt(num); i++) {
     if (num % i === 0) return false;
   }
 
@@ -17,34 +17,43 @@ function isPrime(num) {
 }
 
 // =====================================
-// ✅ GET API: get primes based on number
-// Example: /api/getprime/5 → [1,2,3,5,7]
+// ✅ ROOT
+// =====================================
+app.get('/', (req, res) => {
+  res.send('Prime API is running 🚀');
+});
+
+// =====================================
+// ✅ GET API: return FIRST N prime numbers
+// Example: /api/getprime/5 → [2,3,5,7,11]
 // =====================================
 app.get('/api/getprime/:number', (req, res) => {
-  const number = parseInt(req.params.number);
+  const count = parseInt(req.params.number);
 
-  if (isNaN(number)) {
+  if (isNaN(count) || count <= 0) {
     return res.status(400).json({
       error: 'Invalid number'
     });
   }
 
   let primes = [];
+  let num = 2;
 
-  for (let i = 1; i <= number + 2; i++) {
-    if (i === 1 || isPrime(i)) {
-      primes.push(i);
+  while (primes.length < count) {
+    if (isPrime(num)) {
+      primes.push(num);
     }
+    num++;
   }
 
   res.json({
-    input: number,
+    input: count,
     primes: primes
   });
 });
 
 // =====================================
-// ✅ POST API: check if prime
+// ✅ POST API: readable prime check
 // =====================================
 app.post('/api/checkprime', (req, res) => {
   const { number } = req.body;
@@ -61,16 +70,17 @@ app.post('/api/checkprime', (req, res) => {
     });
   }
 
-  const result = isPrime(Number(number));
+  const num = Number(number);
 
-  res.json({
-    number: number,
-    isPrime: result
-  });
+  if (isPrime(num)) {
+    return res.send(`${num} is a prime number`);
+  } else {
+    return res.send(`${num} is not a prime number`);
+  }
 });
 
 // =====================================
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
